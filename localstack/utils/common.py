@@ -126,6 +126,7 @@ class ShellCommandThread(FuncThread):
         inherit_cwd=False,
         inherit_env=True,
         log_listener=None,
+        strip_color=False,
     ):
         self.cmd = cmd
         self.process = None
@@ -136,6 +137,7 @@ class ShellCommandThread(FuncThread):
         self.inherit_env = inherit_env
         self.log_listener = log_listener
         self.auto_restart = auto_restart
+        self.strip_color = strip_color
         FuncThread.__init__(self, self.run_cmd, params, quiet=quiet)
 
     def run_cmd(self, params):
@@ -156,6 +158,9 @@ class ShellCommandThread(FuncThread):
     def do_run_cmd(self):
         def convert_line(line):
             line = to_str(line or "")
+            if self.strip_color:
+                # strip color codes
+                line = re.sub(r"\x1b(\[.*?[@-~]|\].*?(\x07|\x1b\\))", "", line)
             return "%s\r\n" % line.strip()
 
         def filter_line(line):
